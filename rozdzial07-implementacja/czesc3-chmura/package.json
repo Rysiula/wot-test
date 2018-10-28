@@ -1,0 +1,15 @@
+{
+  "name": "wot-plug",
+  "description": "Przykłady do książki: Internet rzeczy. Budowa sieci z wykorzystaniem technologii webowych i Raspberry Pi",
+  "author": "Dom Guinard <dom@guinard.org>",
+  "author": "Vlad Trifa <vladounet@gmail.com>",
+  "repository" : "https://github.com/webofthings/wot-book.git",
+  "main": "plug-with-control.js",
+  "scripts": {
+    "test": "echo \"Błąd: nie określono żadnych testów\" && exit 1"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "mqtt": "^1.5.0"
+  }
+}

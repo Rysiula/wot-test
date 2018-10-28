@@ -1,0 +1,27 @@
+{
+  "name": "mdns-pi",
+  "version": "0.0.1",
+  "description": "Przykład do książki: Internet rzeczy. Budowa sieci z wykorzystaniem technologii webowych i Raspberry Pi",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Błąd: nie określono żadnych testów\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/webofthings/wot-book/tree/master/chapter8-semantics"
+  },
+  "keywords": [
+    "mdns",
+    "wot",
+    "book",
+    "webofthings",
+    "internetofthings",
+    "discovery",
+    "bonjour"
+  ],
+  "author": "Dom Guinard",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "mdns": "^2.2.10"
+  }
+}

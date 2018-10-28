@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+
+
+  <script type="text/javascript">
+
+    // Zwraca wartość parametru zapytania przekazanego w wywołaniu
+    function getParameterByName(name) {
+      name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+      var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+          results = regex.exec(location.search);
+      return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+    }
+
+    var hostname = 'raspberrypi.local:8484';
+    //var hostname = 'localhost:8484'; // nazwa hosta rzeczy webowej
+    var secure = true; // true w przypadku używania HTTPS
+    var rootUrl = (secure ? "https://" : "http://") + hostname;
+
+    var token, modelUrl;
+
+    // Generuje adres URL rzeczy webowej zawierający żeton API, o ile został podany w parametrze zapytania
+    if (getParameterByName('token') != ""){
+      console.log('Pobranie żetonu urządzenia z parametru zapytania:'+getParameterByName('token'));
+      token = getParameterByName('token');
+      modelUrl = rootUrl+'/model?token='+token;
+    } else {
+      modelUrl = rootUrl+'/model';
+    }
+
+    $(window).bind("load", function() {
+      getModel(modelUrl);
+    });
+
+
+		var longitude, latitude;
+
+    function setLocation(position) {
+      latitude = position.coords.latitude;
+      longitude = position.coords.longitude;
+      console.log(" Tu jesteś: ("+latitude+","+longitude+")");
+    }
+
+    function getLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(setLocation);
+      } else { 
+        alert("Ta przeglądarka nie obsługuje geolokalizacji.");
+      }
+    }
+
+function getModel(sourceUrl){ 
+  $.ajax({ 
+    type: 'GET', //#A
+    url: sourceUrl, //#A 
+    dataType: 'json', //#A
+    headers: {Accept : "application/json"}, //#B
+    success: function( data ){ 
+      baseUrl=data.customFields.hostname+":"+data.customFields.port; //#C        
+      $('#wt-name').html(data.name); //#D
+      $('#wt-description').html(data.description); //#D
+      generateActions(data.links.actions.resources); //#E
+      generateProperties(data.links.properties.resources); //#F
+     }, 
+    error: function( jqXhr, textStatus, errorThrown ){
+      console.log( errorThrown ); 
+    } 
+  });
+}
+
+//#A Wykonanie żądania GET przesyłanego na adres określony przez sourceUrl, w celu pobrania modelu.
+//#B Dodanie nagłówka, który jawnie zażąda zwrócenia danych w formacie JSON.
+//#C Po prawidłowym obsłużeniu żądania, nazwa hosta jest zapisywana na potrzeby przyszłych żądań (takich jak przesyłanie akcji).
+//#D Aktualizacja strony z użyciem metadanych urządzenia.
+//#E Generacja interfejsu użytkownika dla akcji.
+//#F Generacja interfejsu użytkownika dla właściwości.
+
+		// TODO generate a slider for min-max integers
+		// TODO $("<span>") show required/option
+
+function generateActions(actions){ 
+  $.each(actions, function(i,item){ //#A
+
+    $("<div>").attr("class","panel panel-default").appendTo("#wt-actions").append($("<div>").attr("class","panel-heading").append($("<h3>").attr("class","panel-title").html(item.name))).append($("<div>").attr("class","panel-body").html(item.description).append($("<form>").attr("class","form-horizontal").attr("id","wt-actions-"+i))); //#B
+
+    var el = "#wt-actions-"+i; //#B 
+    $.each(item.values, function(vi,vitem){ //#C 
+      $("<div>").attr("class","form-group").attr("id","wt-actions-"+i+"-"+vi).appendTo(el); //#D
+      var vel=el+"-"+vi; //#D 
+      $("<label>").attr("class","col-sm-2 control-label").html(vi).appendTo(vel);
+      $("<div>").attr("class","col-sm-8").attr("id","wt-actions-"+i+"-"+vi+"-f").appendTo(vel); //#E  
+
+      switch(vitem.type) { //#F 
+        case 'boolean': //#G 
+          $("<select>").attr("class","form-control").attr("name",vi).attr("id","wt-actions-"+i+"-"+vi+"-v").appendTo(vel+"-f");
+          $("<option>").val(true).html("True").appendTo(vel+"-v");
+          $("<option>").val(false).html("False").appendTo(vel+"-v");
+          break;
+        case 'enum': //#H 
+          $("<select>").attr("class","form-control").attr("name",vi).attr("id","wt-actions-"+i+"-"+vi+"-v").appendTo(vel+"-f");
+          $.each(vitem.enum, function(enumi,enumv){ //#I
+          	$("<option>").val(enumi).html(enumv).appendTo(vel+"-v");
+          });
+          break;
+        default: //#J
+          $("<input>").attr("class","form-control").attr("type","text").attr("name",vi).attr("placeholder",vitem.type).appendTo(vel+"-f");
+      };
+    });
+
+    $("<p>").html("<a class=\"col-sm-offset-2 col-sm-4 btn btn-primary btn-lg\" id=\"send-"+i+"\" href=\"#\" role=\"button\">Create Action: "+i+"</a>").appendTo(el); //#K
+    $('#send-'+i).click(function() {  //#L 
+      var data = {};  
+      $(el).serializeArray().map(function(x){
+        if (x.value==="true"){
+          data[x.name] = true;
+        } else if (x.value==="false") {
+          data[x.name] = false;
+        } else {
+          data[x.name] = x.value;          
+        }
+      }); //#M
+      sendAction(i,data); //#N 
+    });
+  });
+}
+
+//#A Ta funkcja jest wywoływana dla każdej akcji zdefiniowanej w modelu danej rzeczy webowej
+//#B Dla każdej akcji tworzony jest elementu interfejsu użytkownika (form), który będzie zawierał jej parametry ("el" to identyfikator formularza dla danej akcji).
+//#C Ta instrukcja iteruje po wszystkich parametrach akcji.
+//#D Utworzenie elementu div, który będzie zawierał element (pole formularza) dla danego parametru ("vel" to identyfikator tego elementu div).
+//#E Utworzenie elementu div zawierającego wartość tego parametru. 
+//#F Sprawdzenie typu parametru.
+//#G Parametr jest typu logicznego, zatem generowana jest rozwijana lista z wartościami prawda/fałsz.
+//#H Parametr jest typu wyliczeniowego, zatem generowana jest rozwijana lista z jego dozwolonymi wartościami.
+//#I Iteracja po zawartości obiektu typu wyliczeniowego, w celu wygenerowania wszystkich dostępnych wartości.
+//#J Parametr jest innego typu, zatem zostaje wygenerowane zwyczajne pole tekstowe.
+//#K Utworzenie przycisku dla akcji.
+//#L Dodanie procedury obsługi do przycisku
+//#M Zapisanie wszystkich pól wejściowych formularza w zmiennej "data".
+//#N I w końcu, to wywołanie przesyła akcję do rzeczy webowej.
+    
+
+
+function generateProperties(properties){ 
+  $.each(properties, function(i,item){ //#A
+    $("<h3>").html(item.name).appendTo("#wt-properties");
+    $("<p>").html(item.description).appendTo("#wt-properties");
+    $("<h5>").html("Wartości (znacznik czasu: <span id=\"property-"+i+"-value-timestamp\">nieznany</span>)").appendTo("#wt-properties");
+    $("<ul>").attr("class","list-group").attr("id","property-"+i).appendTo("#wt-properties");
+
+    $.each(item.values, function(vi,vitem){ //#B
+      $("<li>").attr("class","list-group-item").html("<span id=\"property-"+i+"-value-"+vi+"\" class=\"badge\"></span>"+vi).appendTo("#property-"+i);
+    });
+
+    var wsUrl = (secure ? 'wss://' : 'ws://') + hostname +'/properties/'+i; //#C
+    var socket = new WebSocket(wsUrl); //#C 
+
+    socket.onopen = function (message) { //#D 
+      console.log("Zasubskrybowano właściwość : "+wsUrl); 
+    };
+
+    socket.onmessage = function (message) { 
+      var content = JSON.parse(message.data); //#E
+      console.log("Właściwość "+i+" została zaktualizowana: ", content);
+      $.each(content, function(vi,vitem){ //#F 
+        $("#property-"+i+"-value-"+vi).text(vitem); 
+      });
+    };
+
+    socket.onerror = function (error) {
+        console.log('Błąd nawiązywanie połączenia z WebSocket!');
+        console.log(error);
+    };
+  });
+}
+//#A Dla każdej właściwości tworzony jest zestaw elementów HTML.
+//#B Dla każdej wartości tej właściwości tworzony jest element listy.
+//#C Subskrypcja właściwości przy użyciu protokołu WebSocket.
+//#D Ta funkcja jest wywoływana po udanym nawiązaniu połączenia WebSocket.
+//#E Po odebraniu każdego komunikatu WebSocket, jest on rozpakowywany.
+//#F Aktualizacja zawartości dla każdej odebranej wartości.
+
+	</script>
+
+	<title>Kontroler WoT</title>
+
+	<style class="anchorjs"></style><link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet">
+	<link href="https://gitcdn.github.io/bootstrap-toggle/2.2.0/css/bootstrap-toggle.min.css" rel="stylesheet">
+	<script src="https://gitcdn.github.io/bootstrap-toggle/2.2.0/js/bootstrap-toggle.min.js"></script>
+
+	<!-- Dodatkowe style dokumentacji -->
+	<link href="./files/docs.min.css" rel="stylesheet">
+
+</head>
+
+
+  <body>
+
+    <!-- Układ strony dokumentacji -->
+    <div class="bs-docs-header" id="content" tabindex="-1">
+      <div class="container">
+        <h1>Interfejs użytkownika WoT</h1>
+        <p>Kontroluj dowolną rzecz webową!</p>
+      </div>
+    </div>
+
+    <div class="container bs-docs-container">
+      <div class="row">
+        <div class="col-md-9" role="main">
+          <div class="bs-docs-section">
+
+            <h2 id="wt-name">Inteligentna wtyczka</h2>
+            <p id="wt-description"></p>
+
+            <hr>
+            <h2>Akcje</h2>
+            <div id="wt-actions">
+            </div>
+
+
+            <hr>
+            <h2>Właściwości</h2>
+            <div id="wt-properties">
+            </div>
+
+
+            <script>
+
+function sendAction(type,value){ 
+  console.log("Action input: " + type +":"+value);
+
+  $.ajax({ 
+    url: (secure ? "https://" : "http://") + hostname +'/actions/' + type + '?token='+token,//#A
+    type: 'POST', //#B
+    dataType: 'json', //#B
+    contentType: 'application/json', //#B
+    data: JSON.stringify(value), //#C
+    processData: false, 
+    success: function( data, textStatus, jQxhr ){ //#D
+      console.log("Action sent: " + JSON.stringify( value ));
+    }, 
+    error: function( jqXhr, textStatus, errorThrown ){
+      console.log( errorThrown ); 
+    } 
+  });
+}
+
+//#A Punktu końcowy platformy EVRYTHNG o nazwie actions.
+//#B Wysłanie żądania POST zawierającego dane w formacie JSON.
+//#C Zawartość żądania POST (w jego zawartości są umieszczone dane wpisane w formularzu).
+//#D Jeśli żądanie zostało poprawnie obsłużone, zostanie zaktualizowana zawartość elementu strony o identyfikatorze "response".
+
+
+            </script>
+
+          </div>
+
+          </div>
+        </div>
+
+    <!-- Footer
+================================================== -->
+<footer class="bs-docs-footer" role="contentinfo">
+  <div class="container">
+
+    <p>Utworzono z użyciem biblioteki Bootstrap.</p>
+
+  </div>
+</footer>
+
+<!-- Bootstrap core JavaScript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+
+
+</body></html>

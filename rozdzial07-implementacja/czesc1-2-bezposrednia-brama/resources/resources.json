@@ -1,0 +1,43 @@
+{
+  "pi": {
+    "name": "Webowe Pi",
+    "description": "Proste Raspberry Pi podłączone do WWW rzeczy.",
+    "port": 8484,
+    "sensors": {
+      "temperature": {
+        "name": "Czujnik temperatury",
+        "description": "Czujnik temperatury otoczenia.",
+        "unit": "celsius",
+        "value": 0,
+        "gpio": 12
+      },
+      "humidity": {
+        "name": "Czujnik wilgotności",
+        "description": "Czujnik wilgotności otoczenia.",
+        "unit": "%",
+        "value": 0,
+        "gpio": 12
+      },
+      "pir": {
+        "name": "Pasywny czujnik podczerwieni",
+        "description": "Pasywny czujnik podczerwieni. Wartość 'true' oznacza wykrycie jakiejś osoby.",
+        "value": true,
+        "gpio": 17
+      }
+    },
+    "actuators": {
+      "leds": {
+        "1": {
+          "name": "LED 1",
+          "value": false,
+          "gpio": 4
+        },
+        "2": {
+          "name": "LED 2",
+          "value": false,
+          "gpio": 9
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,25 @@
+"actions": {
+  "link": "/actions",
+  "title": "Akcje tej rzeczy webowej",
+  "resources": {
+    "ledState": {
+      "name": "Zmiana stanu diody LED",
+      "description": "Zmiana stanu wybranej diody LED",
+      "values": {
+        "ledId": {
+          "type": "enum",
+          "enum": {
+            "1": "LED 1",
+            "2": "LED 2",
+            "ALL": "Wszystkie diody LED"
+          },
+          "required": true
+        },
+        "state": {
+          "type": "boolean",
+          "required": true
+        }
+      } 
+    }
+  }
+}

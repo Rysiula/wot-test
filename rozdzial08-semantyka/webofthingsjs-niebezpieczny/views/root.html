@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Rzecz webowa</title>
+
+  <style class="anchorjs"></style>
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+
+  <!-- Dodatkowe style dokumentacji -->
+  <link href="/css/docs.min.css" rel="stylesheet">
+
+</head>
+
+
+<body>
+
+  <!-- Układ strony dokumentacji -->
+	<div class="bs-docs-header" id="content" tabindex="-1">
+		<div class="container">
+			<h1><a href="/{{req.qp}}">{{req.rooturl}}</a> / </h1>
+			<p>Zasób główny rzeczy webowej</p>
+		</div>
+	</div>
+
+	<div class="container bs-docs-container">
+		<div class="row">
+			<div class="col-md-9" role="main">
+				<div class="bs-docs-section" vocab="http://model.webofthings.org/" typeof="WebThing">
+
+
+					<h2>Metadane</h2>
+					<p>ID: <span property="id">{{req.result.id}}</span></p>
+					<p>Nazwa: <span property="name">{{req.result.name}}</span></p>
+					<p>Opis: <span property="description">{{req.result.description}}</span></p>
+					<p>Znaczniki: <span property="tags">{{req.result.tags}}</span></p>
+					
+					<p>Główny adres URL: <a property="url" href="{{req.result.id}}">{{req.result.id}}</a></p>
+
+					<h3>Pola niestandardowe</h3>
+					{{#each req.result.customFields}}
+					<p>Klucz: {{@key}} = {{this}}</p>
+					{{/each}}
+
+					<h3>Model</h3>
+
+					<div>
+					<a href="model/{{req.qp}}">Zobacz pełny model</a> tej rzeczy webowe. 
+					</div>
+
+					<hr>
+
+					<h2>Zasoby</h2>
+
+					<ul>
+					{{#each req.model.links}}
+						<li property="links" typeof="{{@key}}"><a property="url" href="{{this.link}}{{../req.qp}}"><span property="name">{{@key}}</span></a> - <span property="title">{{this.title}}</span></li>
+					{{/each}}
+					</ul>
+
+					<hr>
+				</div>
+
+			</div>
+		</div>
+	</div>
+
+<footer class="bs-docs-footer" role="contentinfo">
+  <div class="container">
+
+    <p>Sprawdź książkę.</p>
+
+  </div>
+</footer>
+
+
+</body></html>

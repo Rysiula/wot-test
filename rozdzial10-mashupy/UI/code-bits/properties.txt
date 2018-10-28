@@ -1,0 +1,70 @@
+"properties": {
+  "link": "/properties",
+  "title": "Lista właściwości",
+  "resources": {
+    "temperature": {
+      "name": "Czujnik temperatury",
+      "description": "Czujnik temperatury otoczenia.",
+      "values": {
+        "temp": {
+          "name": "Czujnik temperatury",
+          "description": "temperatura w stopniach Celsjusza",
+          "unit": "celsius",
+          "customFields": {
+            "gpio": 21
+          }
+        }
+      },
+      "tags": ["sensor","public","indoors"]
+    },
+    "humidity": {
+      "name": "Czujnik wilgotności",
+      "description": "Czujnik wilgotności otoczenia.",
+      "values": {
+        "h": {
+          "name": "Wilgotność",
+          "description": "Procent wilgotności",
+          "unit": "%",
+          "customFields": {
+            "gpio": 21
+          }
+        }
+      },
+      "tags": ["sensor","public"]
+    },
+    "pir": {
+      "name": "Czujnik PIR",
+      "description": "Pasywny czujnik podczerwieni.",
+      "values": {
+        "presence": {
+          "name": "Obecność",
+          "description": "Aktualna wartość czujnika (true=wykryto ruch)",
+          "type": "boolean",
+          "customFields": {
+            "gpio": 20
+          }
+        }
+      },
+      "tags": ["sensor","public"]
+    },
+    "leds": {
+      "name": "Diody LED",
+      "description": "Diody LED podłączone do tego urządzenia.",
+      "values": {
+        "1": {
+          "name": "LED 1",
+          "customFields": {
+            "gpio": 17
+          }
+        },
+        "2": {
+          "name": "LED 2",
+          "customFields": {
+            "gpio": 19
+          }
+        }
+      },
+      "tags": ["sensor","public"]
+    }
+  }
+}

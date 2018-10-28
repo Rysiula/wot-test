@@ -1,0 +1,76 @@
+{
+  "name": "webofthings",
+  "version": "0.1.0",
+  "description": "Działający w oparciu o Node.js serwer i brama dla linuksowych urządzeń WWW rzeczy, takich jak: Raspberry Pi, Beaglebone, Edison lub Samsung Artik",
+  "main": "wot.js",
+  "scripts": {
+    "start": "node wot.js",
+    "test": "mocha"
+  },
+  "author": "Dominique Guinard, @domguinard",
+  "contributors": [
+    {
+      "name": "Vlad Trifa",
+      "email": "vladounet@gmail.com"
+    },
+    {
+      "name": "Dominique Guinard",
+      "email": "dom@guinard.org"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/webofthings/webofthings.js"
+  },
+  "license": "Apache-2.0",
+  "keywords": [
+    "web of things",
+    "internet of things",
+    "wot",
+    "gateway",
+    "building the web of things",
+    "REST",
+    "HTTP",
+    "mqtt",
+    "pi",
+    "raspberry",
+    "pizero",
+    "coap",
+    "m2m",
+    "iot",
+    "tcp",
+    "websockets",
+    "beaglebone",
+    "messaging",
+    "jsondld",
+    "messagepack"
+  ],
+  "dependencies": {
+    "bl": "^1.0.0",
+    "body-parser": "^1.13.1",
+    "coap": "^0.13.1",
+    "consolidate": "^0.13.1",
+    "cors": "^2.7.1",
+    "crypto": "0.0.3",
+    "express": "^4.13.3",
+    "handlebars": "^3.0.3",
+    "lodash": "^3.10.0",
+    "msgpack5": "^3.3.0",
+    "node-json2html": "^1.0.0",
+    "node-uuid": "^1.4.3",
+    "ws": "^1.0.1"
+  },
+  "optionalDependencies": {
+    "onoff": "^1.0.4",
+    "node-dht-sensor": "^0.0.8"
+  },
+  "devDependencies": {
+    "assert": "^1.3.0",
+    "chai": "^2.3.0",
+    "http-status": "^0.1.8",
+    "mocha": "^2.2.5",
+    "request": "^2.55.0",
+    "websocket": "^1.0.22"
+  },
+  "engines" : { "node" : ">=0.12.3 <5.0.0" }
+}
