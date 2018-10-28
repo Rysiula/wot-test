@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mój pierwszy mashup WoT!</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+  <script type="text/javascript">
+$(document).ready(function () {
+  var rootUrl = 'http://devices.webofthings.io';
+
+  function mashup(name, location) {
+    var yahooUrl = "https://query.yahooapis.com/v1/public/yql?q=select item from weather.forecast where woeid in (select woeid from geo.places(1) where text='" + location + "') and u='c'&format=json";
+    $.getJSON(yahooUrl, function (yahooResult) {//#A
+      var localTemp = yahooResult.query.results.channel.item.condition.temp;
+      console.log('Local @ ' + location + ': ' + localTemp);
+      $.getJSON(rootUrl + '/pi/sensors/temperature', function (piResult) {//#B
+        console.log('Pi @ London: ' + piResult.value);
+        publishMessage(prepareMessage(name, location, localTemp, piResult.value)); //#C
+      });
+    }); 
+  }
+
+  function publishMessage(message) {
+    $.ajax(rootUrl + '/pi/actuators/display/content', { //#D
+      data: JSON.stringify({"value": message}),
+      contentType: 'application/json',
+      method: 'POST',
+      success: function (data) {
+        $('#message').html('Opublikowano na LCD: ' + message);
+        $('#wait').html('Zdjęcie z kamery internetowej z Twoim komunikatem zostanie wyświetlone poniżej za ' + (data.displayInSeconds+2) + ' sekund.');
+        console.log('Zdjęcie zostanie zrobione za ' + (data.displayInSeconds+2) + ' sekund...');
+        setTimeout(takePicture, (data.displayInSeconds+2) * 1000); //#E 
+      }
+    });
+  }
+
+  function prepareMessage(name, location, localTemp, piTemp) { //#F
+    return name + '@' + location + ((localTemp < piTemp) ? ' < ' : ' > ') + piTemp;
+  }
+
+  function takePicture() {
+    $.ajax({ //#G
+      method: 'GET',
+      url: rootUrl + '/camera/sensors/picture/',
+      dataType: 'json',
+      success: function (data) {
+        console.log(data);
+        $('#camImg').attr('src', data.value); //#H
+      },
+      error: function (err) {
+        console.log(err);
+      }
+    });
+  }
+
+  mashup('Renata', 'Gliwice, PL');
+});
+//#A - W pierwszej kolejności, z serwisu Yahoo pobierana jest temperatura w miejscu gdzie znajduje się użytkownik.
+//#B - Następnie pobierana jest temperatura zmierzona przez Pi w naszym biurze w Londynie.
+//#C - Przygotowanie treści komunikatu i zastosowanie go do aktualizacji tekstu wyświetlanego na ekranie LCD.
+//#D - Wysłanie żądania POST z komunikatem do ekranu LCD.
+//#E - Ustawienie czasomierza, który po upłynięciu N sekund (kiedy ekran LCD zostanie już zaktualizowany) wywoła funkcję takePicture().
+//#F - Generacja tekstu do wyświetlenia, zawierającego imię użytkownika, jego lokalizację oraz temperaturę zmierzoną przez Pi.
+//#G - Pobranie zdjęcia zrobionego przez kamerę internetową w naszym biurze.
+//#H - Aktualizacja znacznika HTML <img> i zapisanie w nim adresu URL zrobionego zdjęcia.
+  </script>
+<h1>Aplikacja typu mashup porównująca temperatury</h1>
+<h2 id='message'></h2>
+<h3 id='wait'></h3>
+<img id="camImg" src=""/>
+</body>
+</html>

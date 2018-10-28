@@ -1,0 +1,71 @@
+<html>
+<head>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+  <script type="text/javascript"
+  src="https://www.google.com/jsapi?autoload={
+    'modules':[{
+      'name':'visualization',
+      'version':'1',
+      'packages':['corechart']
+    }]
+  }"></script>
+</head>
+
+<body>
+  <div id="chart" style="width: 900px; height: 500px"></div>
+  <script type="text/javascript">
+$(document).ready(function () {
+  var maxDataPoints = 10;
+  var chart = new google.visualization.LineChart($('#chart')[0]); //#A
+  var data = google.visualization.arrayToDataTable([ //#B
+    ['Czas', 'Temperatura'],
+    [getTime(), 0]
+  ]); 
+
+  var options = { //#C
+    title: 'Temperatura',
+    curveType: 'function',
+    animation: {
+      duration: 1000,
+      easing: 'in'
+    },
+    legend: {position: 'bottom'}
+  };
+
+  function addDataPoint(dataPoint) { //#D
+    if (data.getNumberOfRows() > maxDataPoints) {
+      data.removeRow(0);
+    }
+    data.addRow([getTime(), dataPoint.value]);
+    chart.draw(data, options); //#E
+  }
+
+  function getTime() {
+    var d = new Date();
+    return d.toLocaleTimeString();
+  }
+
+  function doPoll() { //#F
+    $.getJSON('http://devices.webofthings.io/pi/sensors/temperature/value',
+      function (result) {
+        addDataPoint(result); //#G
+        setTimeout(doPoll, 2000);
+      });
+    }
+
+    doPoll();
+  });
+
+//#A Inicjalizacja wykresu.
+//#B Utworzenie tablicy, w której będą zapisywane kolejne punkty wykresu.
+//#C Konfiguracja parametrów wykresu.
+//#D Dodanie danych kolejnego punktu do tablicy z danymi wykresu oraz usunięcie najstarszego punktu, jeśli będzie to konieczne (jeżeli liczba punktów przekroczy 10).
+//#E Przerysowanie wykresu w celu uwzględnienia nowego punktu.
+//#F Odczyt wartości z czujnika temperatury (jak w poprzednim przykładzie).
+//#G Kiedy będzie dostępna nowa wartość odczytana z czujnika, użyjemy jej w wywołaniu funkcji addDataPoint().
+
+
+</script>
+
+</body>
+</html>

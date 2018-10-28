@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>  
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Odczyt z czujnika PIR przy użyciu Websocket</title>
+</head>
+<body>
+
+<script type="text/javascript">
+    function subscribeToSensor(sensor) {
+        var socket = new WebSocket('ws://devices.webofthings.io/pi/sensors/' + sensor,'wot'); //#A
+
+        socket.onmessage = function (event) { //#B
+            var result = JSON.parse(event.data);
+            console.log(result.value)
+        };
+        socket.onerror = function (error) { //#C
+            console.log('Błąd podczas próby nawiązania połączenia Websocket!');
+            console.log(error); 
+        };
+    };
+    subscribeToSensor('pir');
+
+    //#A Utworzenie subskrypcji WebSocket pobierającej dane z czujnika temperatury. Koniecznie należy zwrócić uwagę na zastosowanie protokołu WebSocket (ws://…).
+    //#B Zarejestrowanie anonimowej funkcji, która ma być wywoływana po odebraniu komunikatu WebSocket.
+    //#C Zarejestrowanie kolejnej anonimowej funkcji, która będzie wywoływana w przypadku wystąpienia błędów komunikacji WebSocket.
+
+</script>
+</body >
+</html>
